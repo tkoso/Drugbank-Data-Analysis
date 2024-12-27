@@ -39,8 +39,40 @@ def build_synonyms_dataframe(xml_path):
         synonyms = drug.findall(f'{NAMESPACE}synonyms/{NAMESPACE}synonym')
         for synonym in synonyms:
             records.append({
-                "drugbank_id": drug_id,
-                "synonym": synonym.text
+                'drugbank_id': drug_id,
+                'synonym': synonym.text
             })
 
     return pd.DataFrame(records) # next step is to draw a synonym graph out of this df
+
+
+def build_products_dataframe(xml_path):
+    root = parse_drugbank_xml(xml_path)
+    records = []
+
+    for drug in root.findall(f'{NAMESPACE}drug'):
+        drug_id = drug.findtext(f'{NAMESPACE}drugbank-id[@primary="true"]')
+        for product in drug.findall(f'{NAMESPACE}products/{NAMESPACE}product'):
+            name = product.findtext(f'{NAMESPACE}name')
+            labeller = product.findtext(f'{NAMESPACE}labeller')
+            ndc_product_code = product.findtext(f'{NAMESPACE}ndc-product-code')
+            dosage_form = product.findtext(f'{NAMESPACE}dosage-form')
+            route = product.findtext(f'{NAMESPACE}route')
+            strength = product.findtext(f'{NAMESPACE}strength')
+            country = product.findtext(f'{NAMESPACE}country')
+            source = product.findtext(f'{NAMESPACE}source')
+
+            records.append({
+                'drugbank_id': drug_id,
+                'product_name': name,
+                'labeller': labeller,
+                'ndc_product_code': ndc_product_code,
+                'dosage_form': dosage_form,
+                'route': route,
+                'strength': strength,
+                'country': country,
+                'source': source
+            })
+
+    return pd.DataFrame(records)
+
