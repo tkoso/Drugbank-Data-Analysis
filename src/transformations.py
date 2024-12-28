@@ -95,3 +95,34 @@ def build_pathways_dataframe(xml_path):
     return pd.DataFrame(records)
 
 
+def build_targets_dataframe(xml_path):
+    root = parse_drugbank_xml(xml_path)
+    records = []
+
+    for drug in root.findall(f'{NAMESPACE}drug'):
+        drug_id = drug.findtext(f'{NAMESPACE}drugbank-id[@primary="true"]')
+        targets = drug.findall(f'{NAMESPACE}targets/{NAMESPACE}target')
+        for target in targets:
+            target_id = target.findtext(f'{NAMESPACE}id')
+            polypep = target.find(f"{NAMESPACE}polypeptide")
+            if polypep is not None:
+                external_id = polypep.get('id')
+                external_source = polypep.get('source')
+                polypep_name = polypep.findtext(f'{NAMESPACE}name')
+                gene_name = polypep.findtext(f'{NAMESPACE}gene-name')
+                # TODO: GenAtlas gene's ID (refer to problem statement)
+                chromosome_location = polypep.findtext(f'{NAMESPACE}chromosome-location')
+                cellular_location = polypep.findtext(f'{NAMESPACE}cellular-location')
+                
+                records.append({
+                    'drugbank_id': drug_id,
+                    'target_id': target_id,
+                    'external_id': external_id,
+                    'external_source': external_source,
+                    'polypeptide_name': polypep_name,
+                    'gene_name': gene_name,
+                    'chromosome_location': chromosome_location,
+                    'cellular_location': cellular_location
+                })
+                
+    return pd.DataFrame(records)

@@ -16,3 +16,11 @@ def draw_synonym_graph(drug_id, df_synonyms):
     nx.draw(G, pos, with_labels=True, node_color=node_colors, node_size=1000, font_size=8)
     plt.title(f'Synonyms for {drug_id}')
     plt.show()
+
+
+def draw_pie_cellular_locations(df_targets):
+    cellular_locations = df_targets['cellular_location'].value_counts(dropna=True) # dropping NaN counts
+    cellular_locations.plot.pie(autopct='%1.1f%%', startangle=140)
+    plt.axis('equal')
+    plt.title('Cellular locations of drug targets')
+    plt.show()
