@@ -26,7 +26,6 @@ def draw_pie_cellular_locations(df_targets):
     plt.show()
 
 def draw_pie_chart_groups(df_groups):
-    # please add frequency counts on top of this pie plot
     group_sizes = df_groups['group'].value_counts()
     group_sizes.plot.pie(
         startangle=140,

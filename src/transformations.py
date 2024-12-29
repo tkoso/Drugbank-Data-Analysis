@@ -141,3 +141,24 @@ def build_groups_dataframe(xml_path):
             })
 
     return pd.DataFrame(records)
+
+
+def build_actions_dataframe(xml_path):
+    root = parse_drugbank_xml(xml_path)
+    records = []
+
+    for drug in root.findall(f'{NAMESPACE}drug'):
+        drug_id = drug.findtext(f'{NAMESPACE}drugbank-id[@primary="true"]')
+        for target in drug.findall(f'{NAMESPACE}targets/{NAMESPACE}target'):
+            target_id = target.findtext(f'{NAMESPACE}id')
+            
+            actions = target.findall(f'{NAMESPACE}actions/{NAMESPACE}action')
+            actions = [action.text for action in actions]
+
+            records.append({
+                'drugbank_id': drug_id,
+                'target_id': target_id,
+                'actions': actions
+            })
+
+    return pd.DataFrame(records)
