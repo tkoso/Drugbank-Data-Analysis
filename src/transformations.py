@@ -126,3 +126,18 @@ def build_targets_dataframe(xml_path):
                 })
                 
     return pd.DataFrame(records)
+
+def build_groups_dataframe(xml_path):
+    root = parse_drugbank_xml(xml_path)
+    records = []
+
+    for drug in root.findall(f'{NAMESPACE}drug'):
+        drug_id = drug.findtext(f'{NAMESPACE}drugbank-id[@primary="true"]')
+        groups = drug.findall(f'{NAMESPACE}groups/{NAMESPACE}group')
+        for group in groups:
+            records.append({
+                'drugbank_id': drug_id,
+                'group': group.text
+            })
+
+    return pd.DataFrame(records)

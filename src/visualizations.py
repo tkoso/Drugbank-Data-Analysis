@@ -24,3 +24,14 @@ def draw_pie_cellular_locations(df_targets):
     plt.axis('equal')
     plt.title('Cellular locations of drug targets')
     plt.show()
+
+def draw_pie_chart_groups(df_groups):
+    # please add frequency counts on top of this pie plot
+    group_sizes = df_groups['group'].value_counts()
+    group_sizes.plot.pie(
+        startangle=140,
+        autopct = lambda p: f'{int(p * sum(group_sizes) / 100)}'
+    )
+    plt.axis('equal')
+    plt.title('Distribution of drugs in groups')
+    plt.show()

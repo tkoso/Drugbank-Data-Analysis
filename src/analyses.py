@@ -11,3 +11,11 @@ def count_unique_pathways(df_pathways):
 #         .reset_index()
 #     )
 #     return grouped
+
+def approved_and_non_withdrawn_drugs(df_groups):
+    grouped = df_groups.groupby('drugbank_id')['group'].apply(set)
+
+    count = sum(('approved' in group_set) and not ('withdrawn' in group_set) for group_set in grouped)
+
+    return count
+    
