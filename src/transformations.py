@@ -81,16 +81,34 @@ def build_pathways_dataframe(xml_path):
     records = []
 
     for drug in root.findall(f'{NAMESPACE}drug'):
-        drug_id = drug.findtext(f'{NAMESPACE}drugbank-id[@primary="true"]')
         pathways = drug.findall(f'{NAMESPACE}pathways/{NAMESPACE}pathway')
         for pathway in pathways:
             pathway_name = pathway.findtext(f'{NAMESPACE}name')
             pathway_smpdb = pathway.findtext(f'{NAMESPACE}smpdb-id')
             records.append({
-                'drugbank_id': drug_id,
                 'pathway_name': pathway_name,
                 'smpdb-id': pathway_smpdb
             })
+
+    return pd.DataFrame(records)
+
+def build_pathways_to_drugs_dataframe(xml_path):
+    root = parse_drugbank_xml(xml_path)
+    records = []
+
+    for drug in root.findall(f'{NAMESPACE}drug'):
+        pathways = drug.findall(f'{NAMESPACE}pathways/{NAMESPACE}pathway')
+        for pathway in pathways:
+            pathway_name = pathway.findtext(f'{NAMESPACE}name')
+            pathway_smpdb = pathway.findtext(f'{NAMESPACE}smpdb-id')
+            drugs = pathway.findall(f'{NAMESPACE}drugs/{NAMESPACE}drug')
+            for drug in drugs:
+                drug_id = drug.findtext(f'{NAMESPACE}drugbank-id')
+                records.append({
+                    'pathway_name': pathway_name,
+                    'drugbank_id': drug_id,
+                    'smpdb-id': pathway_smpdb
+                })
 
     return pd.DataFrame(records)
 

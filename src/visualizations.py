@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 def draw_synonym_graph(drug_id, df_synonyms):
     synonyms = df_synonyms[df_synonyms['drugbank_id'] == drug_id]['synonym'].tolist()
@@ -15,6 +16,41 @@ def draw_synonym_graph(drug_id, df_synonyms):
 
     nx.draw(G, pos, with_labels=True, node_color=node_colors, node_size=1000, font_size=8)
     plt.title(f'Synonyms for {drug_id}')
+    plt.show()
+
+def draw_pathway_drug_bipartite(df_pathways_to_drugs):
+    B = nx.Graph()
+
+    pathways = df_pathways_to_drugs['pathway_name'].unique()
+    drugs = df_pathways_to_drugs['drugbank_id'].unique()
+
+    # here we add nodes
+    B.add_nodes_from(pathways, bipartite=0, color='green')
+    B.add_nodes_from(drugs, bipartite=1, color='blue')
+
+    # and here we add edges
+    for _, row in df_pathways_to_drugs.iterrows():
+        B.add_edge(row['pathway_name'], row['drugbank_id'])
+
+    # here we create the layout
+    pos = {}
+    for i, pw in enumerate(pathways):
+        pos[pw] = (1, i)
+    for j, dr in enumerate(drugs):
+        pos[dr] = (2, j)
+
+    node_colors = [d['color'] for _, d in B.nodes(data=True)]
+
+    nx.draw(B, pos, with_labels=True, node_color=node_colors, node_size=1000, font_size=8)
+    plt.title('Bipartite graph of pathways interacting with drugs')
+    plt.show()
+
+
+def draw_histogram_pathways_per_drug(df_pathways_count_per_drug):
+    sns.histplot(df_pathways_count_per_drug['num_pathways'], binwidth=1)
+    plt.xlabel('number of pathways')
+    plt.ylabel('count of drugs')
+    plt.title('pathways count per drug')
     plt.show()
 
 
