@@ -1,8 +1,7 @@
 import pandas as pd
 from parsing import parse_drugbank_xml, NAMESPACE
 
-def build_drugs_dataframe(xml_path):
-    root = parse_drugbank_xml(xml_path)
+def build_drugs_dataframe(root):
     records = []
 
     for drug in root.findall(f'{NAMESPACE}drug'):
@@ -32,8 +31,7 @@ def build_drugs_dataframe(xml_path):
 
     return pd.DataFrame(records)
 
-def build_synonyms_dataframe(xml_path):
-    root = parse_drugbank_xml(xml_path)
+def build_synonyms_dataframe(root):
     records = []
 
     for drug in root.findall(f'{NAMESPACE}drug'):
@@ -48,8 +46,7 @@ def build_synonyms_dataframe(xml_path):
     return pd.DataFrame(records) # next step is to draw a synonym graph out of this df
 
 
-def build_products_dataframe(xml_path):
-    root = parse_drugbank_xml(xml_path)
+def build_products_dataframe(root):
     records = []
 
     for drug in root.findall(f'{NAMESPACE}drug'):
@@ -78,8 +75,7 @@ def build_products_dataframe(xml_path):
 
     return pd.DataFrame(records)
 
-def build_pathways_dataframe(xml_path):
-    root = parse_drugbank_xml(xml_path)
+def build_pathways_dataframe(root):
     records = []
 
     for drug in root.findall(f'{NAMESPACE}drug'):
@@ -94,8 +90,7 @@ def build_pathways_dataframe(xml_path):
 
     return pd.DataFrame(records)
 
-def build_pathways_to_drugs_dataframe(xml_path):
-    root = parse_drugbank_xml(xml_path)
+def build_pathways_to_drugs_dataframe(root):
     records = []
 
     for drug in root.findall(f'{NAMESPACE}drug'):
@@ -115,8 +110,7 @@ def build_pathways_to_drugs_dataframe(xml_path):
     return pd.DataFrame(records)
 
 
-def build_targets_dataframe(xml_path):
-    root = parse_drugbank_xml(xml_path)
+def build_targets_dataframe(root):
     records = []
 
     for drug in root.findall(f'{NAMESPACE}drug'):
@@ -151,8 +145,7 @@ def build_targets_dataframe(xml_path):
                 
     return pd.DataFrame(records)
 
-def build_groups_dataframe(xml_path):
-    root = parse_drugbank_xml(xml_path)
+def build_groups_dataframe(root):
     records = []
 
     for drug in root.findall(f'{NAMESPACE}drug'):
@@ -167,8 +160,7 @@ def build_groups_dataframe(xml_path):
     return pd.DataFrame(records)
 
 
-def build_drug_interactions_dataframe(xml_path):
-    root = parse_drugbank_xml(xml_path)
+def build_drug_interactions_dataframe(root):
     records = []
 
     for drug in root.findall(f'{NAMESPACE}drug'):
