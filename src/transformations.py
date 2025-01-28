@@ -10,8 +10,10 @@ def build_drugs_dataframe(xml_path):
         name = drug.findtext(f'{NAMESPACE}name')
         drug_type = drug.get('type')
         description = drug.findtext(f'{NAMESPACE}description')
-        # TODO: something doesn't work here with the dosage_form, it's inside the <products> tag...
-        dosage_form = drug.findtext(f'{NAMESPACE}dosage-form')
+        state = drug.findtext(f'{NAMESPACE}state')
+        # TODO: maybe these below is what we need?
+        # products = [product.findtext(f'{NAMESPACE}dosage-form') for product in drug.findall(f'{NAMESPACE}products/{NAMESPACE}product')]
+        # dosages = [dosage.findtext(f'{NAMESPACE}form') for dosage in drug.findall(f'{NAMESPACE}dosages/{NAMESPACE}dosage')]
         indication = drug.findtext(f'{NAMESPACE}indication')
         mechanism_of_action = drug.findtext(f'{NAMESPACE}mechanism-of-action')
         food_nodes = drug.findall(f'{NAMESPACE}food-interactions/{NAMESPACE}food-interaction')
@@ -22,7 +24,7 @@ def build_drugs_dataframe(xml_path):
             'name': name,
             'type': drug_type,
             'description': description,
-            'dosage_form': dosage_form,
+            'form': state,
             'indication': indication,
             'mechanism_of_action': mechanism_of_action,
             'food_interactions': '; '.join(food_interactions)
@@ -128,7 +130,10 @@ def build_targets_dataframe(xml_path):
                 external_source = polypep.get('source')
                 polypep_name = polypep.findtext(f'{NAMESPACE}name')
                 gene_name = polypep.findtext(f'{NAMESPACE}gene-name')
-                # TODO: GenAtlas gene's ID (refer to problem statement)
+                for ext_id in polypep.findall(f'{NAMESPACE}external-identifiers/{NAMESPACE}external-identifier'):
+                    if 'GenAtlas' in ext_id.findtext(f'{NAMESPACE}resource'):
+                        genatlas_id = ext_id.findtext(f'{NAMESPACE}identifier')
+                        break
                 chromosome_location = polypep.findtext(f'{NAMESPACE}chromosome-location')
                 cellular_location = polypep.findtext(f'{NAMESPACE}cellular-location')
                 
@@ -139,6 +144,7 @@ def build_targets_dataframe(xml_path):
                     'external_source': external_source,
                     'polypeptide_name': polypep_name,
                     'gene_name': gene_name,
+                    'genatlas_id': genatlas_id,
                     'chromosome_location': chromosome_location,
                     'cellular_location': cellular_location
                 })
@@ -161,22 +167,20 @@ def build_groups_dataframe(xml_path):
     return pd.DataFrame(records)
 
 
-def build_actions_dataframe(xml_path):
+def build_drug_interactions_dataframe(xml_path):
     root = parse_drugbank_xml(xml_path)
     records = []
 
     for drug in root.findall(f'{NAMESPACE}drug'):
         drug_id = drug.findtext(f'{NAMESPACE}drugbank-id[@primary="true"]')
-        for target in drug.findall(f'{NAMESPACE}targets/{NAMESPACE}target'):
-            target_id = target.findtext(f'{NAMESPACE}id')
-            
-            actions = target.findall(f'{NAMESPACE}actions/{NAMESPACE}action')
-            actions = [action.text for action in actions]
-
+        interactions = drug.findall(f'{NAMESPACE}drug-interactions/{NAMESPACE}drug-interaction')
+        for interaction in interactions:
+            other_drug_id = interaction.findtext(f'{NAMESPACE}drugbank-id')
+            description = interaction.findtext(f'{NAMESPACE}description')
             records.append({
                 'drugbank_id': drug_id,
-                'target_id': target_id,
-                'actions': actions
+                'other_drugbank_id': other_drug_id,
+                'description': description
             })
 
     return pd.DataFrame(records)
