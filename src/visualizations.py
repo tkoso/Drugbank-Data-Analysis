@@ -9,17 +9,30 @@ def draw_synonym_graph(drug_id, df_synonyms):
     synonyms = df_synonyms[df_synonyms['drugbank_id'] == drug_id]['synonym'].tolist()
 
     G = nx.Graph()
-    G.add_node(drug_id, color='red')
+    G.add_node(drug_id, color='#FF6B6B')
     for synonym in synonyms:
-        G.add_node(synonym, color='green')
+        G.add_node(synonym, color='#9FE2BF')
         G.add_edge(drug_id, synonym)
 
     pos = nx.spring_layout(G, k=0.8)
     node_colors = [d['color'] for _, d in G.nodes(data=True)]
 
-    nx.draw(G, pos, with_labels=True, node_color=node_colors, node_size=1000, font_size=8)
-    plt.title(f'Synonyms for {drug_id}')
+    nx.draw(G, pos,
+           with_labels=True,
+           node_color=node_colors,
+           node_size=1200,
+           font_size=9,
+           edge_color='#D3D3D3',
+           width=1.5,
+           font_weight='bold',
+           )
+
+    plt.title(f'Synonyms for {drug_id}', fontsize=12, pad=20)
     plt.show()
+
+
+import matplotlib.pyplot as plt
+import networkx as nx
 
 def draw_pathway_drug_bipartite(df_pathways_to_drugs):
     B = nx.Graph()
@@ -27,26 +40,41 @@ def draw_pathway_drug_bipartite(df_pathways_to_drugs):
     pathways = df_pathways_to_drugs['pathway_name'].unique()
     drugs = df_pathways_to_drugs['drugbank_id'].unique()
 
-    # here we add nodes
-    B.add_nodes_from(pathways, bipartite=0, color='green')
-    B.add_nodes_from(drugs, bipartite=1, color='blue')
+    # Add nodes with modified colors
+    B.add_nodes_from(pathways, bipartite=0, color='#9FE2BF')  # Soft green
+    B.add_nodes_from(drugs, bipartite=1, color='#FF6B6B')     # Coral
 
-    # and here we add edges
+    # Add edges
     for _, row in df_pathways_to_drugs.iterrows():
         B.add_edge(row['pathway_name'], row['drugbank_id'])
 
-    # here we create the layout
+    # Create manual layout
     pos = {}
     for i, pw in enumerate(pathways):
-        pos[pw] = (1, i)
+        # move the pathway nodes a bit to the left (x=0.8)
+        pos[pw] = (0.8, i)
     for j, dr in enumerate(drugs):
         pos[dr] = (2, j)
 
     node_colors = [d['color'] for _, d in B.nodes(data=True)]
 
-    nx.draw(B, pos, with_labels=True, node_color=node_colors, node_size=1000, font_size=8)
-    plt.title('Bipartite graph of pathways interacting with drugs')
+    # Make the figure bigger, then draw
+    plt.figure(figsize=(10, 8))  # Increase width and height
+    nx.draw(
+        B, pos, 
+        with_labels=True,
+        node_color=node_colors,
+        node_size=1000,
+        font_size=8,
+        edge_color='#808080',
+        width=0.5
+    )
+    plt.title('Bipartite Graph of Pathways Interacting with Drugs')
+
+    # This helps ensure axis labels / titles / nodes fit
+    plt.tight_layout()
     plt.show()
+
 
 
 def draw_histogram_pathways_per_drug(df_pathways_count_per_drug):
@@ -56,8 +84,6 @@ def draw_histogram_pathways_per_drug(df_pathways_count_per_drug):
     plt.title('pathways count per drug')
     plt.show()
 
-
-import matplotlib.pyplot as plt
 
 def draw_pie_cellular_locations(df_targets):
     counts = df_targets['cellular_location'].value_counts(dropna=True)
@@ -91,7 +117,6 @@ def draw_pie_cellular_locations(df_targets):
     plt.show()
 
 
-
 def draw_pie_chart_groups(df_groups):
     group_sizes = df_groups['group'].value_counts()
     group_sizes.plot.pie(
@@ -101,6 +126,7 @@ def draw_pie_chart_groups(df_groups):
     plt.axis('equal')
     plt.title('Distribution of drugs in groups')
     plt.show()
+
 
 def _build_gene_drug_product_graph(gene_name, df_targets, df_products):
     # Get all DrugBank IDs linked to the selected gene
