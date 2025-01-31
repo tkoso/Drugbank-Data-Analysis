@@ -4,6 +4,8 @@ import seaborn as sns
 import numpy as np
 from matplotlib import cm
 from matplotlib.gridspec import GridSpec
+import math
+import matplotlib.patches as mpatches
 
 
 def draw_synonym_graph(drug_id, df_synonyms):
@@ -18,15 +20,16 @@ def draw_synonym_graph(drug_id, df_synonyms):
     pos = nx.spring_layout(G, k=0.8)
     node_colors = [d['color'] for _, d in G.nodes(data=True)]
 
-    nx.draw(G, pos,
-           with_labels=True,
-           node_color=node_colors,
-           node_size=1200,
-           font_size=9,
-           edge_color='#D3D3D3',
-           width=1.5,
-           font_weight='bold',
-           )
+    nx.draw(
+        G, pos,
+        with_labels=True,
+        node_color=node_colors,
+        node_size=1200,
+        font_size=9,
+        edge_color='#D3D3D3',
+        width=1.5,
+        font_weight='bold',
+    )
 
     plt.title(f'Synonyms for {drug_id}', fontsize=12, pad=20)
     plt.show()
@@ -52,7 +55,7 @@ def draw_pathway_drug_bipartite(df_pathways_to_drugs):
 
     node_colors = [d['color'] for _, d in B.nodes(data=True)]
 
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(12, 8))
     nx.draw(
         B, pos, 
         with_labels=True,
@@ -60,13 +63,13 @@ def draw_pathway_drug_bipartite(df_pathways_to_drugs):
         node_size=1000,
         font_size=8,
         edge_color='#808080',
-        width=0.5
+        width=0.5,
+        font_weight='bold',
     )
-    plt.title('Bipartite Graph of Pathways Interacting with Drugs')
+    plt.title('Bipartite graph of pathways interacting with drugs')
 
     plt.tight_layout()
     plt.show()
-
 
 
 def draw_histogram_pathways_per_drug(df_pathways_count_per_drug):
@@ -278,3 +281,204 @@ def draw_gene_drug_product_graph(gene_name, df_targets, df_products):
     
     # 3) Draw the resulting network
     _draw_network(G, pos, product_mapping, gene_name)
+
+
+def _build_drug_gene_disease_graph(df, drug_id):
+    # Filter to only rows for this drug
+    subset = df[df['drugbank_id'] == drug_id]
+    if subset.empty:
+        print(f"No data found for drug {drug_id}.")
+        return None, {}, [], {}
+
+    # Create the graph
+    G = nx.Graph()
+
+    # Add the drug node
+    G.add_node(drug_id, node_type="drug")
+
+    # Gather unique genes
+    genes = subset['gene_name'].dropna().unique().tolist()
+    genes.sort()
+
+    # Connect each gene to the drug
+    for gene in genes:
+        G.add_node(gene, node_type="gene")
+        G.add_edge(drug_id, gene)
+
+    # For each gene, collect diseases and connect them
+    gene_to_diseases = {}
+    all_diseases = set()
+    for gene in genes:
+        gene_diseases = (
+            subset.loc[subset['gene_name'] == gene, 'disease']
+            .dropna().unique().tolist()
+        )
+        gene_diseases.sort()
+        gene_to_diseases[gene] = gene_diseases
+
+        for disease in gene_diseases:
+            if disease != 'No info':
+                all_diseases.add(disease)
+                G.add_node(disease, node_type="disease")
+                G.add_edge(gene, disease)
+
+    # Sort disease list for consistent numbering
+    all_diseases_sorted = sorted(all_diseases)
+
+    # Build a map disease -> index
+    disease_index_map = {d: i+1 for i, d in enumerate(all_diseases_sorted)}
+
+    return G, disease_index_map, all_diseases_sorted, gene_to_diseases
+
+
+def _position_drug_gene_disease_graph(G, gene_to_diseases, drug_id, R_genes=3.0, R_diseases=1.2):
+    pos = {}
+    
+    # 1) Place the drug in the center
+    pos[drug_id] = (0.0, 0.0)
+
+    # 2) Find gene nodes
+    genes = [n for n in G.nodes if G.nodes[n].get('node_type') == 'gene']
+    genes.sort()  # ensure consistent ordering if you want
+
+    n_genes = len(genes)
+
+    # 3) Position genes in a circle
+    for i, gene in enumerate(genes):
+        angle = 2.0 * math.pi * i / max(n_genes, 1)
+        xg = R_genes * math.cos(angle)
+        yg = R_genes * math.sin(angle)
+        pos[gene] = (xg, yg)
+
+    # 4) For each gene, position diseases
+    for gene in genes:
+        xg, yg = pos[gene]
+        diseases = gene_to_diseases[gene]
+        nd = len(diseases)
+
+        if nd == 1:
+            # Just place a single disease node to the right
+            disease = diseases[0]
+            pos[disease] = (xg + R_diseases, yg)
+        else:
+            for j, disease in enumerate(diseases):
+                angle_d = 2.0 * math.pi * j / nd
+                xd = xg + R_diseases * math.cos(angle_d)
+                yd = yg + R_diseases * math.sin(angle_d)
+                pos[disease] = (xd, yd)
+
+    return pos
+
+
+def _draw_drug_gene_disease_graph(G, pos, disease_index_map, 
+                                  all_diseases_sorted, drug_id,figsize=(10, 10),
+                                  node_size=800, edge_width=1.5, label_fontsize=9, legend_fontsize=9
+):
+
+    plt.figure(figsize=figsize)
+
+    # Prepare node colors
+    color_map = []
+    for node, data in G.nodes(data=True):
+        ntype = data.get("node_type", "")
+        if ntype == "drug":
+            color_map.append("gold")
+        elif ntype == "gene":
+            color_map.append("skyblue")
+        elif ntype == "disease":
+            color_map.append("lightcoral")
+        else:
+            color_map.append("lightgray")
+
+    # Draw nodes (omitting labels for the moment)
+    nx.draw_networkx_nodes(
+        G, pos,
+        node_color=color_map,
+        node_size=node_size,
+        alpha=0.9
+    )
+
+    # Draw edges
+    nx.draw_networkx_edges(
+        G, pos,
+        width=edge_width,
+        alpha=0.6,
+        edge_color="gray"
+    )
+
+    # Manually place labels
+    for node, data in G.nodes(data=True):
+        x, y = pos[node]
+        ntype = data.get("node_type", "")
+        
+        if ntype == "disease":
+            # show numeric label
+            idx = disease_index_map[node]
+            label_text = str(idx)
+        else:
+            # drug or gene -> full label
+            label_text = node
+        
+        plt.text(
+            x, y,
+            label_text,
+            size=label_fontsize,
+            ha='center',
+            va='center',
+        )
+
+    plt.title(f"Drug-Gene-Disease for {drug_id}", fontsize=label_fontsize + 4)
+    plt.axis("off")
+
+    # --- ADD COLOR PATCH LEGEND ---
+    drug_patch = mpatches.Patch(color='gold', label='Drug')
+    gene_patch = mpatches.Patch(color='skyblue', label='Gene')
+    disease_patch = mpatches.Patch(color='lightcoral', label='Disease (numbered)')
+    plt.legend(
+        handles=[drug_patch, gene_patch, disease_patch],
+        loc='upper right',
+        fontsize=legend_fontsize
+    )
+
+    # --- ADD DISEASE NUMBER -> NAME MAP ---
+    lines = []
+    for disease in all_diseases_sorted:
+        idx = disease_index_map[disease]
+        lines.append(f"{idx}: {disease}")
+    legend_text = "\n".join(lines)
+
+    # Place this text on the right side of the figure
+    plt.gcf().text(
+        1.02, 0.5,
+        legend_text,
+        fontsize=legend_fontsize,
+        va='center',
+        transform=plt.gca().transAxes,
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.3)
+    )
+
+    plt.show()
+
+
+def draw_drug_gene_disease_graph(df, drug_id):
+    # Build
+    G, disease_index_map, all_diseases_sorted, gene_to_diseases = _build_drug_gene_disease_graph(df, drug_id)
+    if G is None:
+        return  # no data found
+
+    # Layout
+    pos = _position_drug_gene_disease_graph(G, gene_to_diseases, drug_id, R_genes=3.0, R_diseases=1.2)
+
+    # Draw
+    _draw_drug_gene_disease_graph(
+        G,
+        pos,
+        disease_index_map,
+        all_diseases_sorted,
+        drug_id,
+        figsize=(10, 10),
+        node_size=800,
+        edge_width=1.5,
+        label_fontsize=9,
+        legend_fontsize=9
+    )
