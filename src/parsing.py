@@ -1,5 +1,4 @@
 from lxml import etree
-import pandas as pd
 
 NAMESPACE = '{http://www.drugbank.ca}'
 

@@ -1,5 +1,5 @@
 import pandas as pd
-from parsing import parse_drugbank_xml, NAMESPACE
+from parsing import NAMESPACE
 
 def build_drugs_dataframe(root):
     records = []

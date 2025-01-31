@@ -57,12 +57,40 @@ def draw_histogram_pathways_per_drug(df_pathways_count_per_drug):
     plt.show()
 
 
+import matplotlib.pyplot as plt
+
 def draw_pie_cellular_locations(df_targets):
-    cellular_locations = df_targets['cellular_location'].value_counts(dropna=True) # dropping NaN counts
-    cellular_locations.plot.pie(autopct='%1.1f%%', startangle=140)
+    counts = df_targets['cellular_location'].value_counts(dropna=True)
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+
+    def autopct_func(pct):
+        return f'{pct:.1f}%' if pct >= 2 else ''
+
+    wedges, _, autotexts = ax.pie(
+        counts,
+        labels=None,
+        autopct=autopct_func,
+        startangle=140,
+        textprops={'fontsize': 12}
+    )
+
+    ax.legend(
+        wedges,
+        counts.index,
+        title='Cellular Location',
+        loc='center left',
+        bbox_to_anchor=(1, 0.5),
+        fontsize=9
+    )
+
+    ax.set_title('Cellular locations of drug targets', fontsize=14)
     plt.axis('equal')
-    plt.title('Cellular locations of drug targets')
+
+    plt.tight_layout()
     plt.show()
+
+
 
 def draw_pie_chart_groups(df_groups):
     group_sizes = df_groups['group'].value_counts()
