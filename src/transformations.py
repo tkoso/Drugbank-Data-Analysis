@@ -10,7 +10,7 @@ def build_drugs_dataframe(root):
         drug_type = drug.get('type')
         description = drug.findtext(f'{NAMESPACE}description')
         state = drug.findtext(f'{NAMESPACE}state')
-        # TODO: maybe these below is what we need?
+        # Task is a little bit ambiguous, these two might be good as well
         # products = [product.findtext(f'{NAMESPACE}dosage-form') for product in drug.findall(f'{NAMESPACE}products/{NAMESPACE}product')]
         # dosages = [dosage.findtext(f'{NAMESPACE}form') for dosage in drug.findall(f'{NAMESPACE}dosages/{NAMESPACE}dosage')]
         indication = drug.findtext(f'{NAMESPACE}indication')

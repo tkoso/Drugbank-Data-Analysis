@@ -4,6 +4,8 @@ from transformations import (
     build_synonyms_dataframe
 )
 from parsing import parse_drugbank_xml
+from unittest.mock import Mock
+from transformations import build_pathways_to_drugs_dataframe
 
 def test_build_drugs_dataframe():
     root = parse_drugbank_xml('../data/drugbank_partial.xml')
@@ -28,14 +30,6 @@ def test_synonyms_include(drug_id, synonym):
     synonyms = df_synonyms[df_synonyms['drugbank_id'] == drug_id]['synonym'].tolist()
     assert synonym in synonyms
 
-# do mocking test
-from unittest.mock import Mock
-from transformations import build_pathways_to_drugs_dataframe
-
-import pytest
-import pandas as pd
-from unittest.mock import Mock
-from transformations import build_pathways_to_drugs_dataframe, NAMESPACE
 
 def test_build_pathways_to_drugs_dataframe():
     root_mock = Mock() # This simulates the "root"

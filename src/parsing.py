@@ -1,3 +1,4 @@
+# we are using lxml for optimized efficiency when dealing with big xml data
 from lxml import etree
 
 NAMESPACE = '{http://www.drugbank.ca}'

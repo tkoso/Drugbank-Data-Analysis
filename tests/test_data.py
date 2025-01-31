@@ -5,8 +5,6 @@ NAMESPACE = '{http://www.drugbank.ca}'
 
 def test_count_100_drugs_in_xml():
     root = parse_drugbank_xml('../data/drugbank_partial.xml')
-
-    
     
     drugs = root.findall(f"{NAMESPACE}drug")
     assert len(drugs) == 100, f'Expected 100 <drug> elements, found {len(drugs)}.'

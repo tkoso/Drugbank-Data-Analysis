@@ -12,11 +12,14 @@ def draw_synonym_graph(drug_id, df_synonyms):
     synonyms = df_synonyms[df_synonyms['drugbank_id'] == drug_id]['synonym'].tolist()
 
     G = nx.Graph()
+    # main drug node with distinct color
     G.add_node(drug_id, color='#FF6B6B')
     for synonym in synonyms:
         G.add_node(synonym, color='#9FE2BF')
         G.add_edge(drug_id, synonym)
 
+    # compute positions for all nodes using the spring layout
+    # (k is the distance between nodes)
     pos = nx.spring_layout(G, k=0.8)
     node_colors = [d['color'] for _, d in G.nodes(data=True)]
 
@@ -41,18 +44,21 @@ def draw_pathway_drug_bipartite(df_pathways_to_drugs):
     pathways = df_pathways_to_drugs['pathway_name'].unique()
     drugs = df_pathways_to_drugs['drugbank_id'].unique()
 
+    # adding nodes here
     B.add_nodes_from(pathways, bipartite=0, color='#9FE2BF')
     B.add_nodes_from(drugs, bipartite=1, color='#FF6B6B')
 
     for _, row in df_pathways_to_drugs.iterrows():
         B.add_edge(row['pathway_name'], row['drugbank_id'])
 
+    # creating custom layout for the bipartite graph
     pos = {}
     for i, pw in enumerate(pathways):
         pos[pw] = (0.8, i)
     for j, dr in enumerate(drugs):
         pos[dr] = (2, j)
 
+    # extracting the node colors from node attributes
     node_colors = [d['color'] for _, d in B.nodes(data=True)]
 
     plt.figure(figsize=(12, 8))
@@ -68,7 +74,6 @@ def draw_pathway_drug_bipartite(df_pathways_to_drugs):
     )
     plt.title('Bipartite graph of pathways interacting with drugs')
 
-    plt.tight_layout()
     plt.show()
 
 
@@ -85,6 +90,7 @@ def draw_pie_cellular_locations(df_targets):
 
     fig, ax = plt.subplots(figsize=(10, 8))
 
+    # only show percentage label if the slice represents at least 2% of the total
     def autopct_func(pct):
         return f'{pct:.1f}%' if pct >= 2 else ''
 
@@ -191,7 +197,7 @@ def _position_nodes(G, gene_name, relevant_drug_ids, drug_radius=2.5, product_sp
         base_x, base_y = pos[drug_id]
         
         for product in product_nodes:
-            if product not in pos:  # position it only if not already set
+            if product not in pos: # position it only if not already set
                 theta = 2 * np.pi * np.random.random()
                 r = product_spread * (np.random.random() ** 0.7)
                 dx = r * np.cos(theta)
@@ -218,14 +224,14 @@ def _draw_network(G, pos, product_mapping, gene_name,
     for node in G.nodes:
         node_type = G.nodes[node]['type']
         if node_type == 'gene':
-            colors.append('#FF6B6B')   # gene color
+            colors.append('#FF6B6B') # gene color
             labels[node] = node
         elif node_type == 'drug':
-            colors.append('#4ECDC4')  # drug color
+            colors.append('#4ECDC4') # drug color
             labels[node] = node
-        else:  # product
+        else: # product
             colors.append(G.nodes[node]['color'])
-            labels[node] = str(G.nodes[node]['number'])  # display the product number only
+            labels[node] = str(G.nodes[node]['number']) # display the product number only
     
     # Create the figure and gridspec
     fig = plt.figure(figsize=figsize)
@@ -268,7 +274,7 @@ def _draw_network(G, pos, product_mapping, gene_name,
 
     ax_main.set_title(f'Gene {gene_name} Interactions', fontsize=main_font_size + 1)
     ax_main.axis('off')
-    plt.tight_layout()
+
     plt.show()
 
 
