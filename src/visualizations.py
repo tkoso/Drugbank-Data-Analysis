@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib import cm
 from matplotlib.gridspec import GridSpec
 
+
 def draw_synonym_graph(drug_id, df_synonyms):
     synonyms = df_synonyms[df_synonyms['drugbank_id'] == drug_id]['synonym'].tolist()
 
@@ -31,35 +32,27 @@ def draw_synonym_graph(drug_id, df_synonyms):
     plt.show()
 
 
-import matplotlib.pyplot as plt
-import networkx as nx
-
 def draw_pathway_drug_bipartite(df_pathways_to_drugs):
     B = nx.Graph()
 
     pathways = df_pathways_to_drugs['pathway_name'].unique()
     drugs = df_pathways_to_drugs['drugbank_id'].unique()
 
-    # Add nodes with modified colors
-    B.add_nodes_from(pathways, bipartite=0, color='#9FE2BF')  # Soft green
-    B.add_nodes_from(drugs, bipartite=1, color='#FF6B6B')     # Coral
+    B.add_nodes_from(pathways, bipartite=0, color='#9FE2BF')
+    B.add_nodes_from(drugs, bipartite=1, color='#FF6B6B')
 
-    # Add edges
     for _, row in df_pathways_to_drugs.iterrows():
         B.add_edge(row['pathway_name'], row['drugbank_id'])
 
-    # Create manual layout
     pos = {}
     for i, pw in enumerate(pathways):
-        # move the pathway nodes a bit to the left (x=0.8)
         pos[pw] = (0.8, i)
     for j, dr in enumerate(drugs):
         pos[dr] = (2, j)
 
     node_colors = [d['color'] for _, d in B.nodes(data=True)]
 
-    # Make the figure bigger, then draw
-    plt.figure(figsize=(10, 8))  # Increase width and height
+    plt.figure(figsize=(10, 8))
     nx.draw(
         B, pos, 
         with_labels=True,
@@ -71,7 +64,6 @@ def draw_pathway_drug_bipartite(df_pathways_to_drugs):
     )
     plt.title('Bipartite Graph of Pathways Interacting with Drugs')
 
-    # This helps ensure axis labels / titles / nodes fit
     plt.tight_layout()
     plt.show()
 

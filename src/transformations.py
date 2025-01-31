@@ -31,6 +31,7 @@ def build_drugs_dataframe(root):
 
     return pd.DataFrame(records)
 
+
 def build_synonyms_dataframe(root):
     records = []
 
@@ -43,7 +44,7 @@ def build_synonyms_dataframe(root):
                 'synonym': synonym.text
             })
 
-    return pd.DataFrame(records) # next step is to draw a synonym graph out of this df
+    return pd.DataFrame(records)
 
 
 def build_products_dataframe(root):
@@ -75,6 +76,7 @@ def build_products_dataframe(root):
 
     return pd.DataFrame(records)
 
+
 def build_pathways_dataframe(root):
     records = []
 
@@ -89,6 +91,7 @@ def build_pathways_dataframe(root):
             })
 
     return pd.DataFrame(records)
+
 
 def build_pathways_to_drugs_dataframe(root):
     records = []
@@ -144,6 +147,7 @@ def build_targets_dataframe(root):
                 })
                 
     return pd.DataFrame(records)
+
 
 def build_groups_dataframe(root):
     records = []

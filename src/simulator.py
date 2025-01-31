@@ -5,6 +5,7 @@ import random
 
 ET.register_namespace('', NAMESPACE.strip('{}'))
 
+
 def _collect_drug_columns(xml_path: str):
     root = parse_drugbank_xml(xml_path)
     
@@ -24,6 +25,7 @@ def _collect_drug_columns(xml_path: str):
             child_map[tag_name].append(xml_string)
 
     return child_map
+
 
 def generate_drugs(xml_in: str, xml_out: str, total_drugs=20000):
     tree = ET.parse(xml_in)
