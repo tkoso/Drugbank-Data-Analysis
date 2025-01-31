@@ -283,34 +283,33 @@ def draw_gene_drug_product_graph(gene_name, df_targets, df_products):
     _draw_network(G, pos, product_mapping, gene_name)
 
 
-def _build_drug_gene_disease_graph(df, drug_id):
+def _build_drug_gene_disease_graph(df_targets_with_diseases, drug_name):
     # Filter to only rows for this drug
-    subset = df[df['drugbank_id'] == drug_id]
-    if subset.empty:
-        print(f"No data found for drug {drug_id}.")
+    if df_targets_with_diseases.empty:
+        print(f"No disease data found for drug {drug_name}.")
         return None, {}, [], {}
 
     # Create the graph
     G = nx.Graph()
 
     # Add the drug node
-    G.add_node(drug_id, node_type="drug")
+    G.add_node(drug_name, node_type="drug")
 
     # Gather unique genes
-    genes = subset['gene_name'].dropna().unique().tolist()
+    genes = df_targets_with_diseases['gene_name'].dropna().unique().tolist()
     genes.sort()
 
     # Connect each gene to the drug
     for gene in genes:
         G.add_node(gene, node_type="gene")
-        G.add_edge(drug_id, gene)
+        G.add_edge(drug_name, gene)
 
     # For each gene, collect diseases and connect them
     gene_to_diseases = {}
     all_diseases = set()
     for gene in genes:
         gene_diseases = (
-            subset.loc[subset['gene_name'] == gene, 'disease']
+            df_targets_with_diseases.loc[df_targets_with_diseases['gene_name'] == gene, 'disease']
             .dropna().unique().tolist()
         )
         gene_diseases.sort()
@@ -331,11 +330,11 @@ def _build_drug_gene_disease_graph(df, drug_id):
     return G, disease_index_map, all_diseases_sorted, gene_to_diseases
 
 
-def _position_drug_gene_disease_graph(G, gene_to_diseases, drug_id, R_genes=3.0, R_diseases=1.2):
+def _position_drug_gene_disease_graph(G, gene_to_diseases, drug_name, R_genes=3.0, R_diseases=1.2):
     pos = {}
     
     # 1) Place the drug in the center
-    pos[drug_id] = (0.0, 0.0)
+    pos[drug_name] = (0.0, 0.0)
 
     # 2) Find gene nodes
     genes = [n for n in G.nodes if G.nodes[n].get('node_type') == 'gene']
@@ -371,9 +370,8 @@ def _position_drug_gene_disease_graph(G, gene_to_diseases, drug_id, R_genes=3.0,
 
 
 def _draw_drug_gene_disease_graph(G, pos, disease_index_map, 
-                                  all_diseases_sorted, drug_id,figsize=(10, 10),
-                                  node_size=800, edge_width=1.5, label_fontsize=9, legend_fontsize=9
-):
+                                  all_diseases_sorted, drug_name,figsize=(10, 10),
+                                  node_size=800, edge_width=1.5, label_fontsize=9, legend_fontsize=9):
 
     plt.figure(figsize=figsize)
 
@@ -427,7 +425,7 @@ def _draw_drug_gene_disease_graph(G, pos, disease_index_map,
             va='center',
         )
 
-    plt.title(f"Drug-Gene-Disease for {drug_id}", fontsize=label_fontsize + 4)
+    plt.title(f"Drug-Gene-Disease for {drug_name}", fontsize=label_fontsize + 4)
     plt.axis("off")
 
     # --- ADD COLOR PATCH LEGEND ---
@@ -460,14 +458,14 @@ def _draw_drug_gene_disease_graph(G, pos, disease_index_map,
     plt.show()
 
 
-def draw_drug_gene_disease_graph(df, drug_id):
+def draw_drug_gene_disease_graph(df, drug_name):
     # Build
-    G, disease_index_map, all_diseases_sorted, gene_to_diseases = _build_drug_gene_disease_graph(df, drug_id)
+    G, disease_index_map, all_diseases_sorted, gene_to_diseases = _build_drug_gene_disease_graph(df, drug_name)
     if G is None:
         return  # no data found
 
     # Layout
-    pos = _position_drug_gene_disease_graph(G, gene_to_diseases, drug_id, R_genes=3.0, R_diseases=1.2)
+    pos = _position_drug_gene_disease_graph(G, gene_to_diseases, drug_name, R_genes=3.0, R_diseases=1.2)
 
     # Draw
     _draw_drug_gene_disease_graph(
@@ -475,7 +473,7 @@ def draw_drug_gene_disease_graph(df, drug_id):
         pos,
         disease_index_map,
         all_diseases_sorted,
-        drug_id,
+        drug_name,
         figsize=(10, 10),
         node_size=800,
         edge_width=1.5,
